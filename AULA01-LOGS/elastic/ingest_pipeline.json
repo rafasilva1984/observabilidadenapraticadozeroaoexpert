@@ -1,0 +1,31 @@
+{
+  "description": "Pipeline para normaliza\u00e7\u00e3o de logs",
+  "processors": [
+    {
+      "json": {
+        "field": "message",
+        "add_to_root": true
+      }
+    },
+    {
+      "date": {
+        "field": "timestamp",
+        "formats": [
+          "ISO8601"
+        ],
+        "target_field": "@timestamp"
+      }
+    },
+    {
+      "lowercase": {
+        "field": "level"
+      }
+    },
+    {
+      "set": {
+        "field": "ingested_at",
+        "value": "{{_ingest.timestamp}}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "index_patterns": [
+    "observa-logs-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 1
+    },
+    "mappings": {
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "level": {
+          "type": "keyword"
+        },
+        "endpoint": {
+          "type": "keyword"
+        },
+        "latency_ms": {
+          "type": "integer"
+        },
+        "service": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
