@@ -1,0 +1,1 @@
+GET observa-logs-*/_count
