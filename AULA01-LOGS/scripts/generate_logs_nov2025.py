@@ -48,7 +48,7 @@ messages_by_level = {
         "Falha ao processar pagamento",
         "Erro inesperado na camada de persistência",
         "Exceção não tratada no fluxo de checkout",
-        "Timeout definitivo ao chamar serviço externo",
+        "Timeout definitivo ao chamar provedor externo",
     ],
 }
 
@@ -74,7 +74,7 @@ def gerar_documento_normal(ts):
     }
 
 # --------------------------
-# INCIDENTES CONTROLADOS
+# INCIDENTES AJUSTADOS
 # --------------------------
 
 def incidente_checkout(ts):
@@ -127,21 +127,25 @@ def main():
     incidentes_auth = []
     incidentes_pag = []
 
-    # INCIDENTE 1 — checkout-api (últimas 12h do mês)
+    # INCIDENTE 1 — checkout-api (20/11, 08h até 20h)
+    start = datetime(2025, 11, 20, 8, 0, 0)
+    end = datetime(2025, 11, 20, 20, 0, 0)
     for i in range(2500):
-        ts = inicio + timedelta(minutes=random.randint(29*24*60, 30*24*60))
+        ts = start + timedelta(minutes=random.randint(0, int((end - start).total_seconds()/60)))
         incidentes_checkout.append(incidente_checkout(ts))
 
-    # INCIDENTE 2 — auth-service (janela de 2h)
-    janela_auth = inicio + timedelta(days=10, hours=14)
+    # INCIDENTE 2 — auth-service (21/11, 09h às 11h)
+    start = datetime(2025, 11, 21, 9, 0, 0)
+    end = datetime(2025, 11, 21, 11, 0, 0)
     for i in range(1500):
-        ts = janela_auth + timedelta(minutes=random.randint(0, 120))
+        ts = start + timedelta(minutes=random.randint(0, int((end - start).total_seconds()/60)))
         incidentes_auth.append(incidente_auth(ts))
 
-    # INCIDENTE 3 — pagamentos-service (janela de 4h)
-    janela_pagamento = inicio + timedelta(days=18, hours=9)
+    # INCIDENTE 3 — pagamentos-service (21/11, 14h às 18h)
+    start = datetime(2025, 11, 21, 14, 0, 0)
+    end = datetime(2025, 11, 21, 18, 0, 0)
     for i in range(2000):
-        ts = janela_pagamento + timedelta(minutes=random.randint(0, 240))
+        ts = start + timedelta(minutes=random.randint(0, int((end - start).total_seconds()/60)))
         incidentes_pag.append(incidente_pagamento(ts))
 
     docs_incidentes = (
@@ -154,18 +158,18 @@ def main():
     qtd_normais = total_logs - qtd_incidentes
 
     with OUTPUT_FILE.open("w", encoding="utf-8") as f:
-        # Logs normais
+        # logs normais
         for _ in range(qtd_normais):
             ts = inicio + timedelta(minutes=random.randint(0, 30*24*60))
             f.write(json.dumps({"index": {"_index": INDEX_NAME}}) + "\n")
             f.write(json.dumps(gerar_documento_normal(ts)) + "\n")
 
-        # Logs de incidente
+        # logs de incidente
         for doc in docs_incidentes:
             f.write(json.dumps({"index": {"_index": INDEX_NAME}}) + "\n")
             f.write(json.dumps(doc) + "\n")
 
-    print(f"NDJSON gerado com {total_logs} documentos e 3 incidentes claros!")
+    print(f"NDJSON gerado com {total_logs} documentos e incidentes nos dias 20 e 21/11!")
     print(f"Caminho: {OUTPUT_FILE}")
 
 if __name__ == "__main__":
