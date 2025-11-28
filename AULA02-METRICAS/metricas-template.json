@@ -1,0 +1,27 @@
+{
+  "index_patterns": [
+    "metricas-*"
+  ],
+  "data_stream": {},
+  "template": {
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "endpoint": {
+          "type": "keyword"
+        },
+        "latencia_ms": {
+          "type": "float"
+        },
+        "status_code": {
+          "type": "integer"
+        },
+        "throughput": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
