@@ -1,0 +1,4 @@
+{"type":"index-pattern","id":"metricas-lab-dv","attributes":{"title":"metricas-lab*","timeFieldName":"@timestamp"}}
+{"type":"lens","id":"latencia-endpoint","attributes":{"title":"Latência Média por Endpoint"}}
+{"type":"lens","id":"throughput-endpoint","attributes":{"title":"Throughput por Endpoint"}}
+{"type":"dashboard","id":"dashboard-metricas","attributes":{"title":"Dashboard - Métricas do LAB"}}
