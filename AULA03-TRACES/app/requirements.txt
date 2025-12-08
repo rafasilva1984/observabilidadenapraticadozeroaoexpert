@@ -1,5 +1,4 @@
-fastapi
-uvicorn
-opentelemetry-sdk
-opentelemetry-exporter-otlp
-opentelemetry-instrumentation-fastapi
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+elastic-apm[starlette]==6.22.1
+httpx==0.27.2
