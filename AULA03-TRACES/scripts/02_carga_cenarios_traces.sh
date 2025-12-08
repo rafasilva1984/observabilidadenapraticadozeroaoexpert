@@ -1,44 +1,46 @@
-
 #!/usr/bin/env bash
-# 02_carga_cenarios_traces.sh
-# Gera mais de 100.000 requisições divididas em fases,
-# para facilitar a visualização de padrões no mapa de traces.
+set -euo pipefail
 
-set -e
+BASE_URL="${BASE_URL:-http://localhost:8000}"
+ENDPOINT="${BASE_URL}/checkout"
 
-URL="${1:-http://localhost:8000/checkout}"
+CONCURRENCY=${CONCURRENCY:-20}      # número de requisições em paralelo
+WARMUP_REQS=50                      # aquecimento rápido
+PEAK_REQS=400                       # pico principal
+BURST_REQS=200                      # burst final
 
-function fase() {
-  local total=$1
-  local scenario=$2
-  local label=$3
+echo "=== [TRACES LAB] Carga rápida de cenários ==="
+echo "Endpoint: ${ENDPOINT}"
+echo "Concorrência: ${CONCURRENCY}"
+echo
 
-  echo ""
-  echo ">>> Fase ${label}: ${total} req - cenário=${scenario}"
+fire_batch() {
+  local label="$1"
+  local count="$2"
 
-  for i in $(seq 1 ${total}); do
-    curl -s -k "${URL}?scenario=${scenario}" > /dev/null &
-    # a cada 200 requisições, faz uma pequena pausa
-    if (( $i % 200 == 0 )); then
-      sleep 1
-    fi
-  done
-  wait
+  echo ">> Cenário: ${label} | Requisições: ${count}"
+
+  seq 1 "${count}" | xargs -n1 -P "${CONCURRENCY}" -I{} \
+    curl -s -o /dev/null "${ENDPOINT}" || true
+
+  echo "   Cenário '${label}' concluído."
+  echo
 }
 
-# Fase 1: "dia normal" ~30k
-fase 30000 "normal" "1 - Dia normal"
+SECONDS=0
 
-# Fase 2: "pico" ~40k
-fase 40000 "pico" "2 - Pico de carga"
+# 1) Aquecimento rápido – poucas requisições só pra garantir serviço/trace
+fire_batch "Aquecimento (tráfego leve)" "${WARMUP_REQS}"
 
-# Fase 3: "batch_lento" ~20k
-fase 20000 "batch_lento" "3 - Batch de reconciliação lento"
+# 2) Pico principal – tráfego intenso para encher o APM
+fire_batch "Pico de tráfego (checkout em massa)" "${PEAK_REQS}"
 
-# Fase 4: "externo_lento" ~15k
-fase 15000 "externo_lento" "4 - Dependência externa lenta"
+# 3) Burst final – mais algumas requisições para fechar o desenho
+fire_batch "Burst final (variação rápida)" "${BURST_REQS}"
 
-echo ""
-echo ">>> Carga total concluída ( >100.000 requisições )."
-echo "    Agora abra o Kibana → APM → lab-traces-app"
-echo "    e explore por intervalo de tempo para enxergar as fases."
+echo "=== Carga rápida concluída em ${SECONDS}s ==="
+echo "Agora abra o Kibana em: Observability → APM → Services"
+echo "Confira o serviço da aplicação e visualize:"
+echo "- Transactions (pico claro de volume)"
+echo "- Waterfall (spans com diferentes tempos)"
+echo "- Traces (jornada completa das requisições)"
